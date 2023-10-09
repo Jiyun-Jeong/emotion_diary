@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import MyButton from "./MyButton"
+import { format } from "date-fns";
 
 const DiaryItem = ({id, emotion, content, date}) => {
   const navigate = useNavigate(); 
@@ -7,7 +8,8 @@ const DiaryItem = ({id, emotion, content, date}) => {
   const env= process.env;
   env.PUBLIC_URL = env.PUBLIC_URL || "";
 
-  const strDate = new Date(parseInt(date)).toLocaleDateString();
+  //const strDate = new Date(parseInt(date)).toLocaleDateString();
+  const strDate = format(new Date(date), "yyyy년 M월 d일")
 
   const goDetail = () => {
     navigate(`/diary/${id}`)
@@ -19,7 +21,7 @@ const DiaryItem = ({id, emotion, content, date}) => {
   return (
     <div className="DiaryItem">
       <div className={["emotion_img_wrapper", `emotion_img_wrapper_${emotion}`].join(" ")} onClick={goDetail}>
-        <img src={process.env.PUBLIC_URL + `assets/emotion${emotion}.png`} />
+        <img src={process.env.PUBLIC_URL + `assets/emotion${emotion}.png`} alt={emotion} />
       </div>
       <div onClick={goDetail} className="info_wrapper">
         <div className="diary_date">{strDate}</div>
