@@ -1,4 +1,4 @@
-import React, { useReducer, useRef } from 'react';
+import React, { useEffect, useReducer, useRef } from 'react';
 
 import './App.css';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
@@ -19,77 +19,62 @@ const reducer = (state, action) => {
       break;
     }
     case 'REMOVE': {
-      newState = state.filter((it)=>it.id !== action.targetId);
+      newState = state.filter((it) => it.id !== action.targetId);
       break;
-    };
+    }
     case 'EDIT': {
-      newState = state.map((it)=>it.id === action.data.id? {...action.data}: it);
+      newState = state.map((it) => 
+        it.id === action.data.id ? {...action.data}: it);
       break;
     }
     default:
       return state;
   }
+
+  localStorage.setItem('diary', JSON.stringify(newState));
   return newState;
 };
 
 export const DiaryStateContext = React.createContext();
 export const DiaryDispatchContext = React.createContext();
 
-const dummyData = [
-  {
-    id:1,
-    emotion:1,
-    content:"오늘의일기 1번",
-    date:1696774658420,
-  },
-  {
-    id:2,
-    emotion:2,
-    content:"오늘의일기 2번",
-    date:1696774658421,
-  },
-  {
-    id:3,
-    emotion:3,
-    content:"오늘의일기 3번",
-    date:1696774658422,
-  },
-  {
-    id:4,
-    emotion:4,
-    content:"오늘의일기 4번",
-    date:1696774658423,
-  },
-  {
-    id:5,
-    emotion:5,
-    content:"오늘의일기 5번",
-    date:1696774658424,
-  },
-
-]
-
 function App() {
-  const [data, dispatch] = useReducer(reducer, dummyData);
+
+  const [data, dispatch] = useReducer(reducer, []);
+
+  useEffect(() => {
+    const localData = localStorage.getItem('diary');
+    if(localData) {
+      const diaryList = JSON.parse(localData).sort((a, b) => parseInt(b.id) - parseInt(a.id));
+      dataId.current = parseInt(diaryList[0].id + 1);
+
+      dispatch({type:"INIT", data:"diaryList"});
+    }
+  }, [])
 
   //img 태그 안에 process.env.PUBLIC_URL이 작동 안하는 경우 아래의 두 줄 추가
   // const env = process.env;
   // env.PUBLIC_URL = env.PUBLIC_URL || "";
 
+  //key값이 겹치지 않도록 신경써야 한다.
   const dataId = useRef(0);
+
   // CREATE
   const onCreate = (date, content, emotion) => {
-    dispatch({type:"CREATE", data:{
-      id: dataId.current,
-      date: new Date(date).getTime(),
-      content,
-      emotion,
-    }})
+    dispatch({
+      type:"CREATE", 
+      data:{
+        id: dataId.current,
+        date: new Date(date).getTime(),
+        content,
+        emotion,
+      },
+    });
     dataId.current += 1;
-  }
+  };
 
   // REMOVE
-  const onRemove = (targetID) => {
+  const onRemove = (targetId) => {
     dispatch({type:"REMOVE", targetId});
   }
 
@@ -113,7 +98,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/new" element={<New />} />
-            <Route path="/edit" element={<Edit />} />
+            <Route path="/edit/:id" element={<Edit />} />
             <Route path="/diary/:id" element={<Diary />} />
           </Routes>
         </div>
